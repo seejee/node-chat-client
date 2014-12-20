@@ -1,0 +1,18 @@
+#!/usr/bin/env node
+
+var log = require('verbalize');
+log.runner = 'chat-client';
+
+var argv = require('minimist')(process.argv.slice(2));
+
+var url = argv.url || 'http://localhost:3000/faye'
+
+var faye   = require('faye');
+var client = new faye.Client(url);
+
+client.subscribe('/presence/status', function(data) {
+  console.log('Connected.');
+});
+
+console.log('Connecting...');
+client.publish('/presence/connect', { connected: true });
