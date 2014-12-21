@@ -21,7 +21,7 @@ module.exports = function(options) {
   //send messages
   //leave
 
-  teacher.publish('/presence/connect', {
+  teacher.publish('/presence/connect/teacher', {
       userId: 1,
       role:   'teacher'
   });
@@ -33,7 +33,7 @@ module.exports = function(options) {
   //send messages
   //leave
 
-  student.publish('/presence/connect', {
+  student.publish('/presence/connect/student', {
       userId: 100,
       role:   'student'
   });
