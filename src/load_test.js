@@ -13,17 +13,29 @@ module.exports = function(options) {
     console.log('Connected.');
   });
 
-  //teacher
-  //connect
-  //wait for students to pop in the queue
   //grab a student
   //go into a private channel
   //send messages
   //leave
+  //limit students per teacher
 
-  teacher.publish('/presence/connect/teacher', {
-      userId: 1,
-      role:   'teacher'
+  var teacherId = 1;
+
+  teacher.subscribe('/presence/status', function(data) {
+    if(data.students.waiting > 0) {
+      teacher.publish('/presence/claim_student', {
+        teacherId: teacherId
+      });
+    }
+  });
+
+  teacher.subscribe('/presence/new_chat/teacher/' + teacherId, function(data) {
+    console.log('initiate chat', data);
+  });
+
+  teacher.publish('/presence/teacher/connect', {
+    userId: teacherId,
+    role:   'teacher'
   });
 
   //student
@@ -33,16 +45,14 @@ module.exports = function(options) {
   //send messages
   //leave
 
-  student.publish('/presence/connect/student', {
-      userId: 100,
-      role:   'student'
-  });
+  var studentId = 100;
 
-  teacher.subscribe('/presence/status', function(data) {
-    console.log('teacher', data);
-  });
-
-  student.subscribe('/presence/status', function(data) {
+  student.subscribe('/presence/new_chat/student/' + studentId, function(data) {
     console.log('student', data);
+  });
+
+  student.publish('/presence/student/connect', {
+    userId: studentId,
+    role:   'student'
   });
 }
