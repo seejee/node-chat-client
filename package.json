@@ -33,6 +33,7 @@
     "node": ">=0.8"
   },
   "scripts": {
+    "start": "supervisor -w src bin/chatclient",
     "test": "mocha -R test"
   },
   "dependencies": {
