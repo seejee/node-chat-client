@@ -39,9 +39,11 @@ module.exports = function(options) {
       var joinedChannel    = data.joinedChannel;
 
       chatSub = client.subscribe(receiveChannel, function(data) {
-        console.log('student got chat message', data);
-
         messageCount++;
+
+        if(messageCount == 1) {
+          console.log('Student ' + id + ' got first message.');
+        }
 
         client.publish(sendChannel, {
           message: 'Message #' + messageCount + ' from student ' + id
@@ -49,11 +51,14 @@ module.exports = function(options) {
       });
 
       chatSub.then(function() {
-        client.publish(joinedChannel, { userId: id });
-      });
+        terminateSub = client.subscribe(terminateChannel, function(data) {
+          console.log('student ' + id + ' got disconnect message.');
+          disconnect();
+        });
 
-      terminateSub = client.subscribe(terminateChannel, function(data) {
-        disconnect();
+        return terminateSub;
+      }).then(function() {
+        client.publish(joinedChannel, { userId: id });
       });
     }
 
