@@ -5,7 +5,7 @@ module.exports = function(options) {
   var client = new faye.Client(url);
 
   var start = function(id) {
-    var messageCount    = 0;
+    var messageCounts   = {};
     var claimedStudents = 0;
 
     var connect = function() {
@@ -15,15 +15,32 @@ module.exports = function(options) {
       });
     };
 
+    var tryToClaimStudent = function(data) {
+      if(data.students.waiting > 0) {
+        claimStudent();
+      }
+    };
+
     var claimStudent = function() {
       client.publish('/presence/claim_student', {
         teacherId: id
       });
     };
 
-    var sendNextMessage = function(channel) {
+    var messageCount = function(channel) {
+      if(messageCounts[channel] === undefined) {
+        messageCounts[channel] = 0;
+      }
+
+      return messageCounts[channel];
+    }
+
+    var sendNextMessage = function(channel, count) {
+      count = messageCount(channel) + 1;
+      messageCounts[channel] = count;
+
       client.publish(channel, {
-        message: 'Message from teacher: ' + ++messageCount
+        message: 'Message from teacher: ' + count
       });
     };
 
@@ -37,37 +54,42 @@ module.exports = function(options) {
       var sendChannel      = data.sendChannel;
       var receiveChannel   = data.receiveChannel;
       var terminateChannel = data.terminateChannel;
+      var joinedChannel    = data.joinedChannel;
 
       claimedStudents++;
       console.log('Teacher now has ' + claimedStudents + ' students.');
 
       var chatSub = client.subscribe(receiveChannel, function(data) {
-        console.log('Teacher got chat message:', data);
+        //console.log('Teacher got chat message:', data);
 
-        if(messageCount < options.messageCount) {
+        if(messageCount(sendChannel) < options.messageCount) {
           sendNextMessage(sendChannel);
         }
         else {
-          terminateChat(terminateChannel);
-          chatSub.cancel();
           claimedStudents--;
-          console.log('Done');
+          console.log('Teacher now has ' + claimedStudents + ' students.');
+
+          chatSub.cancel();
+          joinedSub.cancel();
+          terminateChat(terminateChannel);
         }
       });
 
-      // kick off the whole shebang
-      sendNextMessage(sendChannel);
+      //wait for student to join
+      var joinedSub = client.subscribe(joinedChannel, function(data) {
+        // kick off the whole shebang
+        sendNextMessage(sendChannel);
+      });
     };
 
-    client.subscribe('/presence/status', function(data) {
-      if(data.students.waiting > 0 && claimedStudents < options.studentsPerTeacher) {
-        claimStudent();
-      }
-    });
-
-    client.subscribe('/presence/new_chat/teacher/' + id, handleNewChat);
-
-    connect();
+    client
+      .subscribe('/presence/status', tryToClaimStudent)
+      .then(function() {
+        client.subscribe('/presence/new_chat/teacher/' + id, handleNewChat)
+      })
+      .then(function() {
+        connect();
+      });
   };
 
   return {

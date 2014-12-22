@@ -6,6 +6,11 @@ module.exports = function(options) {
   var student = require('./student')(options);
   var teacher = require('./teacher')(options);
 
-  teacher.start(1);
-  student.start(100);
+  for(var i = 1; i <= 5; i++) {
+    teacher.start(i);
+  }
+
+  for(var i = 1; i <= 500; i++) {
+    student.start(i);
+  }
 }

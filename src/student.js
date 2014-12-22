@@ -22,27 +22,34 @@ module.exports = function(options) {
       client.publish('/presence/student/disconnect', {
         userId: id,
         role:   'student'
+      }).then(function() {
+        chatSub.cancel();
+        newChatSub.cancel();
+        terminateSub.cancel();
+        client.disconnect();
       });
-
-      chatSub.cancel();
-      newChatSub.cancel();
-      terminateSub.cancel();
-      client.disconnect()
     };
 
     var onNewChat = function(data) {
+      console.log('Student ' + id + ' is starting new chat.');
+
       var sendChannel      = data.sendChannel;
       var receiveChannel   = data.receiveChannel;
       var terminateChannel = data.terminateChannel;
-
-      console.log('Student ' + id + ' is starting new chat.');
+      var joinedChannel    = data.joinedChannel;
 
       chatSub = client.subscribe(receiveChannel, function(data) {
         console.log('student got chat message', data);
 
+        messageCount++;
+
         client.publish(sendChannel, {
-          message: 'Message from student: ' + ++messageCount
+          message: 'Message #' + messageCount + ' from student ' + id
         });
+      });
+
+      chatSub.then(function() {
+        client.publish(joinedChannel, { userId: id });
       });
 
       terminateSub = client.subscribe(terminateChannel, function(data) {
@@ -51,8 +58,10 @@ module.exports = function(options) {
     }
 
     newChatSub = client.subscribe('/presence/new_chat/student/' + id, onNewChat);
+    newChatSub.then(function() {
+      connect();
+    });
 
-    connect();
   }
 
   return {
