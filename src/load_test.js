@@ -5,18 +5,6 @@ module.exports = function(options) {
   var teacher = new faye.Client(url);
   var student = new faye.Client(url);
 
-  teacher.bind('transport:down', function() {
-    console.log('Disconnected.');
-  });
-
-  teacher.bind('transport:up', function() {
-    console.log('Connected.');
-  });
-
-  //grab a student
-  //go into a private channel
-  //send messages
-  //leave
   //limit students per teacher
 
   var teacherId = 1;
@@ -30,7 +18,15 @@ module.exports = function(options) {
   });
 
   teacher.subscribe('/presence/new_chat/teacher/' + teacherId, function(data) {
-    console.log('initiate chat', data);
+    console.log('Teacher is starting new chat.');
+
+    teacher.subscribe(data.receiveChannel, function(data) {
+      console.log('teacher got chat message', data);
+    });
+
+    teacher.publish(data.sendChannel, {
+      message: 'Hello from teacher'
+    });
   });
 
   teacher.publish('/presence/teacher/connect', {
@@ -38,17 +34,20 @@ module.exports = function(options) {
     role:   'teacher'
   });
 
-  //student
-  //connect
-  //wait for teacher to grab student
-  //go into a private channel
-  //send messages
   //leave
 
   var studentId = 100;
 
   student.subscribe('/presence/new_chat/student/' + studentId, function(data) {
-    console.log('student', data);
+    console.log('Student is starting new chat.');
+
+    var chatSub = student.subscribe(data.receiveChannel, function(data) {
+      console.log('student got chat message', data);
+    });
+
+    student.publish(data.sendChannel, {
+      message: 'Hello from student'
+    });
   });
 
   student.publish('/presence/student/connect', {
