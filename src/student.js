@@ -7,23 +7,52 @@ module.exports = function(options) {
     var client       = new faye.Client(url);
     var messageCount = 0;
 
-    client.subscribe('/presence/new_chat/student/' + id, function(data) {
-      var sendChannel = data.sendChannel;
+    var chatSub      = null;
+    var newChatSub   = null;
+    var terminateSub = null;
+
+    var connect = function() {
+      client.publish('/presence/student/connect', {
+        userId: id,
+        role:   'student'
+      });
+    };
+
+    var disconnect = function() {
+      client.publish('/presence/student/disconnect', {
+        userId: id,
+        role:   'student'
+      });
+
+      chatSub.cancel();
+      newChatSub.cancel();
+      terminateSub.cancel();
+      client.disconnect()
+    };
+
+    var onNewChat = function(data) {
+      var sendChannel      = data.sendChannel;
+      var receiveChannel   = data.receiveChannel;
+      var terminateChannel = data.terminateChannel;
+
       console.log('Student ' + id + ' is starting new chat.');
 
-      var chatSub = client.subscribe(data.receiveChannel, function(data) {
+      chatSub = client.subscribe(receiveChannel, function(data) {
         console.log('student got chat message', data);
 
         client.publish(sendChannel, {
           message: 'Message from student: ' + ++messageCount
         });
       });
-    });
 
-    client.publish('/presence/student/connect', {
-      userId: id,
-      role:   'student'
-    });
+      terminateSub = client.subscribe(terminateChannel, function(data) {
+        disconnect();
+      });
+    }
+
+    newChatSub = client.subscribe('/presence/new_chat/student/' + id, onNewChat);
+
+    connect();
   }
 
   return {

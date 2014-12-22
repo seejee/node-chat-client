@@ -27,9 +27,16 @@ module.exports = function(options) {
       });
     };
 
+    var terminateChat = function(channel) {
+      client.publish(channel, {
+        message: 'Teacher is ending the chat.'
+      });
+    };
+
     var handleNewChat = function(data) {
-      var sendChannel    = data.sendChannel;
-      var receiveChannel = data.receiveChannel;
+      var sendChannel      = data.sendChannel;
+      var receiveChannel   = data.receiveChannel;
+      var terminateChannel = data.terminateChannel;
 
       claimedStudents++;
       console.log('Teacher now has ' + claimedStudents + ' students.');
@@ -41,6 +48,7 @@ module.exports = function(options) {
           sendNextMessage(sendChannel);
         }
         else {
+          terminateChat(terminateChannel);
           chatSub.cancel();
           claimedStudents--;
           console.log('Done');
