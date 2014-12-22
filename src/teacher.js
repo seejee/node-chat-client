@@ -27,20 +27,15 @@ module.exports = function(options) {
       });
     };
 
-    client.subscribe('/presence/status', function(data) {
-      if(data.students.waiting > 0 && claimedStudents < options.studentsPerTeacher) {
-        claimStudent();
-      }
-    });
-
-    client.subscribe('/presence/new_chat/teacher/' + id, function(data) {
-      var sendChannel = data.sendChannel;
+    var handleNewChat = function(data) {
+      var sendChannel    = data.sendChannel;
+      var receiveChannel = data.receiveChannel;
 
       claimedStudents++;
       console.log('Teacher now has ' + claimedStudents + ' students.');
 
-      var chatSub = client.subscribe(data.receiveChannel, function(data) {
-        console.log('teacher got chat message', data);
+      var chatSub = client.subscribe(receiveChannel, function(data) {
+        console.log('Teacher got chat message:', data);
 
         if(messageCount < options.messageCount) {
           sendNextMessage(sendChannel);
@@ -54,7 +49,15 @@ module.exports = function(options) {
 
       // kick off the whole shebang
       sendNextMessage(sendChannel);
+    };
+
+    client.subscribe('/presence/status', function(data) {
+      if(data.students.waiting > 0 && claimedStudents < options.studentsPerTeacher) {
+        claimStudent();
+      }
     });
+
+    client.subscribe('/presence/new_chat/teacher/' + id, handleNewChat);
 
     connect();
   };
