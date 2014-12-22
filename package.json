@@ -37,8 +37,9 @@
     "test": "mocha -R test"
   },
   "dependencies": {
+    "faye": "~1.0.3",
+    "lodash": "^2.4.1",
     "minimist": "~0.0.8",
-    "verbalize": "~0.1.1",
-    "faye":      "~1.0.3"
+    "verbalize": "~0.1.1"
   }
 }

@@ -3,7 +3,15 @@
 var log = require('verbalize');
 log.runner = 'chat-client';
 
-var argv = require('minimist')(process.argv.slice(2));
-var url = argv.url || 'http://localhost:3000/faye';
+var _ = require('lodash');
 
-require('../src/load_test')({url: url});
+var argv = require('minimist')(process.argv.slice(2));
+
+var defaults = {
+  url:          'http://localhost:3000/faye',
+  messageCount: 50,
+  studentsPerTeacher: 5
+};
+
+var options = _.merge(defaults, argv);
+require('../src/load_test')(options);
