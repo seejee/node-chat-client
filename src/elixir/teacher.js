@@ -8,6 +8,10 @@ module.exports = function(options) {
 
     socket.join("presence", "global", {userId: id, role: 'teacher'}, function(channel) {
       console.log("teacher connected");
+
+      channel.on("user:status", function(data) {
+        console.log(data);
+      });
     });
   };
 
