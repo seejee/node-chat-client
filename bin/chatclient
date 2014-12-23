@@ -8,12 +8,11 @@ var _ = require('lodash');
 var argv = require('minimist')(process.argv.slice(2));
 
 var defaults = {
-  url:          'http://localhost:3000/faye',
   messageCount: 50,
   studentsPerTeacher: 5,
-  numTeachers: 20,
-  numStudents: 100,
-  nodeServer: true
+  numTeachers: 1,
+  numStudents: 1,
+  nodeServer:  false
 };
 
 var options = _.merge(defaults, argv);

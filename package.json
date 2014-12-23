@@ -38,8 +38,10 @@
   },
   "dependencies": {
     "faye": "~1.0.3",
+    "faye-websocket": "^0.9.2",
     "lodash": "^2.4.1",
     "minimist": "~0.0.8",
-    "verbalize": "~0.1.1"
+    "verbalize": "~0.1.1",
+    "xhr2": "^0.1.0"
   }
 }
