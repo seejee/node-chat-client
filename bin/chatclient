@@ -10,8 +10,8 @@ var argv = require('minimist')(process.argv.slice(2));
 var defaults = {
   messageCount: 50,
   studentsPerTeacher: 5,
-  numTeachers: 1,
-  numStudents: 1,
+  numTeachers: 10,
+  numStudents: 100,
   nodeServer:  false
 };
 

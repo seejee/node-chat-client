@@ -52,7 +52,7 @@ module.exports = function(options) {
 
       chatSub.then(function() {
         terminateSub = client.subscribe(terminateChannel, function(data) {
-          console.log('student ' + id + ' got disconnect message.');
+          console.log('Student ' + id + ' got disconnect message.');
           disconnect();
         });
 

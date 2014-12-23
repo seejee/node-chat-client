@@ -16,6 +16,10 @@ module.exports = function(options) {
     };
 
     var tryToClaimStudent = function(data) {
+      if(data.students.waiting == 0 && data.students.total == 0) {
+        process.exit();
+      }
+
       if(data.students.waiting > 0) {
         claimStudent();
       }

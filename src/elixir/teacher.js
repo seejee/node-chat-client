@@ -7,8 +7,6 @@ module.exports = function(options) {
     var socket = new Phoenix.Socket(url);
 
     socket.join("presence", "global", {userId: id, role: 'teacher'}, function(channel) {
-      console.log("teacher connected");
-
       var tryToClaimStudent = function(data) {
         if(data.students.waiting > 0) {
           channel.send('claim:student', {
@@ -18,14 +16,49 @@ module.exports = function(options) {
       };
 
       channel.on("user:status", function(data) {
+        if(data.students.total == 0) {
+          process.exit();
+        }
+
         tryToClaimStudent(data);
       });
 
+      var messageCounts = {};
+
       channel.on("new:chat:teacher:" + id, function(chat) {
-        console.log("teacher joining");
         socket.join("chats", chat.id, {userId: id, role: 'teacher'}, function(chatChannel) {
+          //console.log("Teacher " + id + " grabbed a new student.");
+
+          var getMessageCount = function() {
+            return messageCounts[chat.id] || 0;
+          };
+
+          var sendNextMessage = function() {
+            var count = getMessageCount() + 1;
+            messageCounts[chat.id] = count;
+
+            chatChannel.send("teacher:send", {
+              message: "Message #" + count + " from teacher: " + id
+            });
+          }
+
           chatChannel.on("chat:ready", function() {
-            console.log("student is ready");
+            sendNextMessage();
+          });
+
+          chatChannel.on("chat:terminated", function(data) {
+            //console.log("Teacher " + id + " is leaving a chat.");
+            delete messageCounts[chat.id];
+            chatChannel.leave();
+          });
+
+          chatChannel.on("teacher:receive", function(data) {
+            if(getMessageCount() < options.messageCount) {
+              sendNextMessage();
+            }
+            else {
+              chatChannel.send("chat:terminate", {});
+            }
           });
 
           chatChannel.send("teacher:joined", {});
