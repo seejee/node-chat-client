@@ -9,8 +9,17 @@ module.exports = function(options) {
     socket.join("presence", "global", {userId: id, role: 'teacher'}, function(channel) {
       console.log("teacher connected");
 
-      channel.on("user:status", function(data) {
+      var tryToClaimStudent = function(data) {
         console.log(data);
+        if(data.students.waiting > 0) {
+          channel.send('claim:student', {
+            teacherId: id
+          });
+        }
+      };
+
+      channel.on("user:status", function(data) {
+        tryToClaimStudent(data);
       });
     });
   };
