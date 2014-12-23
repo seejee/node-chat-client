@@ -1,16 +1,20 @@
-var faye    = require('faye');
-
 module.exports = function(options) {
   var url = options.url;
 
-  var student = require('./student')(options);
-  var teacher = require('./teacher')(options);
+  var student = null;
+  var teacher = null;
 
-  for(var i = 1; i <= 5; i++) {
+  if(options.nodeServer)
+  {
+    student = require('./node/student')(options);
+    teacher = require('./node/teacher')(options);
+  }
+
+  for(var i = 1; i <= options.numTeachers; i++) {
     teacher.start(i);
   }
 
-  for(var i = 1; i <= 500; i++) {
+  for(var i = 1; i <= options.numStudents; i++) {
     student.start(i);
   }
 }

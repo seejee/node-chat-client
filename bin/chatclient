@@ -10,7 +10,10 @@ var argv = require('minimist')(process.argv.slice(2));
 var defaults = {
   url:          'http://localhost:3000/faye',
   messageCount: 50,
-  studentsPerTeacher: 5
+  studentsPerTeacher: 5,
+  numTeachers: 20,
+  numStudents: 100,
+  nodeServer: true
 };
 
 var options = _.merge(defaults, argv);
