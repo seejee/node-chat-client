@@ -8,6 +8,13 @@ module.exports = function(options) {
 
     socket.join("presence", "global", {userId: id, role: 'student'}, function(channel) {
       console.log("student connected");
+
+      channel.on("new:chat:student:" + id, function(chat) {
+        console.log("student joining");
+        socket.join("chats", chat.id, {userId: id, role: 'student'}, function(chatChannel) {
+          chatChannel.send("student:joined", {});
+        });
+      });
     });
   };
 

@@ -10,7 +10,6 @@ module.exports = function(options) {
       console.log("teacher connected");
 
       var tryToClaimStudent = function(data) {
-        console.log(data);
         if(data.students.waiting > 0) {
           channel.send('claim:student', {
             teacherId: id
@@ -20,6 +19,17 @@ module.exports = function(options) {
 
       channel.on("user:status", function(data) {
         tryToClaimStudent(data);
+      });
+
+      channel.on("new:chat:teacher:" + id, function(chat) {
+        console.log("teacher joining");
+        socket.join("chats", chat.id, {userId: id, role: 'teacher'}, function(chatChannel) {
+          chatChannel.on("chat:ready", function() {
+            console.log("student is ready");
+          });
+
+          chatChannel.send("teacher:joined", {});
+        });
       });
     });
   };

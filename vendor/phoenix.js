@@ -243,7 +243,7 @@
       Socket.prototype.onConnClose = function(event) {
         var callback, _i, _len, _ref, _results;
         if (typeof console.log === "function") {
-          console.log("WS close: ", event);
+          console.log("WS close: ", event.reason);
         }
         clearInterval(this.reconnectTimer);
         clearInterval(this.heartbeatTimer);
@@ -264,7 +264,7 @@
       Socket.prototype.onConnError = function(error) {
         var callback, _i, _len, _ref, _results;
         if (typeof console.log === "function") {
-          console.log("WS error: ", error);
+          console.log("WS error: ", error.message);
         }
         _ref = this.stateChangeCallbacks.error;
         _results = [];
