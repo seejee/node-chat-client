@@ -27,7 +27,7 @@ module.exports = function(options) {
 
       channel.on("new:chat:teacher:" + id, function(chat) {
         socket.join("chats", chat.id, {userId: id, role: 'teacher'}, function(chatChannel) {
-          //console.log("Teacher " + id + " grabbed a new student.");
+          console.log("Teacher " + id + " grabbed a new student.");
 
           var getMessageCount = function() {
             return messageCounts[chat.id] || 0;
@@ -38,7 +38,7 @@ module.exports = function(options) {
             messageCounts[chat.id] = count;
 
             chatChannel.send("teacher:send", {
-              message: "Message #" + count + " from teacher: " + id
+              message: "Message from teacher: " + count
             });
           }
 
