@@ -13,7 +13,7 @@
     var root;
     root = this;
     root.XMLHttpRequest = require('xhr2');
-    root.WebSocket      = require('faye-websocket').Client;
+    root.WebSocket      = require('ws');
     exports.Channel = (function() {
       Channel.prototype.bindings = null;
 
