@@ -18,7 +18,9 @@ module.exports = function(options) {
     teacher.start(i);
   }
 
-  for(var i = 1; i <= options.numStudents; i++) {
-    student.start(i);
-  }
+  setTimeout(function() {
+    for(var i = 1; i <= options.numStudents; i++) {
+      student.start(i);
+    }
+  }, 100);
 }

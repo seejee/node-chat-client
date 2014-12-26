@@ -6,8 +6,8 @@ module.exports = function(options) {
   var start = function(id) {
     var socket = new Phoenix.Socket(url);
 
-    socket.join("presence", "global", {userId: id, role: 'student'}, function(channel) {
-      channel.on("new:chat:student:" + id, function(chat) {
+    socket.join("presence", "students", {userId: id, role: 'student'}, function(channel) {
+      channel.on("new:chat:" + id, function(chat) {
         socket.join("chats", chat.id, {userId: id, role: 'student'}, function(chatChannel) {
           console.log("student " + id + " joined chat " + chat.id);
           var messageCount = 0;
