@@ -12,7 +12,7 @@ var defaults = {
   studentsPerTeacher: 5,
   numTeachers: 10,
   numStudents: 1000,
-  nodeServer:  true
+  nodeServer:  false
 };
 
 var options = _.merge(defaults, argv);

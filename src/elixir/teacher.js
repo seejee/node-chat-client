@@ -7,26 +7,24 @@ module.exports = function(options) {
     var socket = new Phoenix.Socket(url);
 
     socket.join("presence", "teachers", {userId: id, role: 'teacher'}, function(channel) {
-      var tryToClaimStudent = function(data) {
-        if(data.students.waiting > 0) {
-          channel.send('claim:student', {
-            teacherId: id
+      var messageCounts = {};
+      var lastStats     = null;
+      var numStudents   = 0;
+
+      var tryToClaimStudent = function() {
+        channel.send('claim:student', {
+          teacherId: id
+        });
+
+        if(numStudents < 5 && (lastStats == null || lastStats.students.waiting > 0)) {
+          setImmediate(function() {
+            tryToClaimStudent();
           });
         }
       };
 
-      channel.on("user:status", function(data) {
-        //console.log(data.students);
-        if(data.students.total == 0) {
-          process.exit();
-        }
-
-        tryToClaimStudent(data);
-      });
-
-      var messageCounts = {};
-
-      channel.on("new:chat:" + id, function(chat) {
+      var handleNewChat = function(chat) {
+        numStudents++;
         socket.join("chats", chat.id, {userId: id, role: 'teacher'}, function(chatChannel) {
           console.log("Teacher " + id + " grabbed a new student.");
 
@@ -51,6 +49,9 @@ module.exports = function(options) {
             //console.log("Teacher " + id + " is leaving a chat.");
             delete messageCounts[chat.id];
             chatChannel.leave();
+
+            numStudents--;
+            tryToClaimStudent();
           });
 
           chatChannel.on("teacher:receive", function(data) {
@@ -64,7 +65,19 @@ module.exports = function(options) {
 
           chatChannel.send("teacher:joined", {});
         });
+      };
+
+      channel.on("user:status", function(data) {
+        //console.log(data.students);
+        lastStats = data;
+        if(data.students.total == 0) {
+          process.exit();
+        }
       });
+
+      channel.on("new:chat:" + id, handleNewChat);
+
+      tryToClaimStudent();
     });
   };
 
