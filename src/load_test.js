@@ -2,7 +2,7 @@ module.exports = function(options) {
   var student = null;
   var teacher = null;
 
-  if(options.nodeServer)
+  if(options.mode == "node")
   {
     options.url = 'http://localhost:3000/faye';
     student = require('./node/student')(options);
