@@ -7,28 +7,35 @@ module.exports = function(options) {
   var start = function(id) {
     var messageCounts   = {};
     var claimedStudents = 0;
+    var lastStats       = null;
 
     var connect = function() {
       client.publish('/presence/teacher/connect', {
         userId: id,
         role:   'teacher'
       });
+
+      tryToClaimStudent();
     };
 
-    var tryToClaimStudent = function(data) {
+    var onStatusUpdate = function(data) {
+      lastStats = data;
+
       if(data.students.waiting == 0 && data.students.total == 0) {
         process.exit();
       }
-
-      if(data.students.waiting > 0) {
-        claimStudent();
-      }
     };
 
-    var claimStudent = function() {
-      client.publish('/presence/claim_student', {
-        teacherId: id
-      });
+    var tryToClaimStudent = function() {
+      if(claimedStudents < 5 && (lastStats == null || lastStats.students.waiting > 0)) {
+        client.publish('/presence/claim_student', {
+          teacherId: id
+        });
+
+        setImmediate(function() {
+          tryToClaimStudent();
+        });
+      }
     };
 
     var messageCount = function(channel) {
@@ -48,16 +55,11 @@ module.exports = function(options) {
       });
     };
 
-    var terminateChat = function(channel) {
-      client.publish(channel, {
-        message: 'Teacher is ending the chat.'
-      });
-    };
-
     var handleNewChat = function(data) {
       var sendChannel      = data.sendChannel;
       var receiveChannel   = data.receiveChannel;
       var terminateChannel = data.terminateChannel;
+      var terminatedChannel = data.terminatedChannel;
       var joinedChannel    = data.joinedChannel;
 
       claimedStudents++;
@@ -70,12 +72,10 @@ module.exports = function(options) {
           sendNextMessage(sendChannel);
         }
         else {
-          claimedStudents--;
-          console.log('Teacher now has ' + claimedStudents + ' students.');
 
-          chatSub.cancel();
-          joinedSub.cancel();
-          terminateChat(terminateChannel);
+          client.publish(terminateChannel, {
+            message: 'teacher is ending the chat.'
+          });
         }
       });
 
@@ -84,10 +84,20 @@ module.exports = function(options) {
         // kick off the whole shebang
         sendNextMessage(sendChannel);
       });
+
+      var terminatedSub = client.subscribe(terminatedChannel, function(data) {
+        chatSub.cancel();
+        joinedSub.cancel();
+        terminatedSub.cancel();
+
+        claimedStudents--;
+        console.log('Teacher now has ' + claimedStudents + ' students.');
+        tryToClaimStudent();
+      });
     };
 
     client
-      .subscribe('/presence/status', tryToClaimStudent)
+      .subscribe('/presence/status', onStatusUpdate)
       .then(function() {
         client.subscribe('/presence/new_chat/teacher/' + id, handleNewChat)
       })

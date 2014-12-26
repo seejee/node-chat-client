@@ -33,10 +33,10 @@ module.exports = function(options) {
     var onNewChat = function(data) {
       console.log('Student ' + id + ' is starting new chat.');
 
-      var sendChannel      = data.sendChannel;
-      var receiveChannel   = data.receiveChannel;
-      var terminateChannel = data.terminateChannel;
-      var joinedChannel    = data.joinedChannel;
+      var sendChannel       = data.sendChannel;
+      var receiveChannel    = data.receiveChannel;
+      var terminatedChannel = data.terminatedChannel;
+      var joinedChannel     = data.joinedChannel;
 
       chatSub = client.subscribe(receiveChannel, function(data) {
         messageCount++;
@@ -51,7 +51,7 @@ module.exports = function(options) {
       });
 
       chatSub.then(function() {
-        terminateSub = client.subscribe(terminateChannel, function(data) {
+        terminateSub = client.subscribe(terminatedChannel, function(data) {
           console.log('Student ' + id + ' got disconnect message.');
           disconnect();
         });
