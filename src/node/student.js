@@ -50,23 +50,18 @@ module.exports = function(options) {
         });
       });
 
-      chatSub.then(function() {
-        terminateSub = client.subscribe(terminatedChannel, function(data) {
-          console.log('Student ' + id + ' got disconnect message.');
-          disconnect();
-        });
+      terminateSub = client.subscribe(terminatedChannel, function(data) {
+        console.log('Student ' + id + ' got disconnect message.');
+        disconnect();
+      });
 
-        return terminateSub;
-      }).then(function() {
+      chatSub.then(terminateSub).then(function() {
         client.publish(joinedChannel, { userId: id });
       });
     }
 
     newChatSub = client.subscribe('/presence/new_chat/student/' + id, onNewChat);
-    newChatSub.then(function() {
-      connect();
-    });
-
+    newChatSub.then(connect);
   }
 
   return {

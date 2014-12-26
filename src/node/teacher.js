@@ -13,9 +13,7 @@ module.exports = function(options) {
       client.publish('/presence/teacher/connect', {
         userId: id,
         role:   'teacher'
-      });
-
-      tryToClaimStudent();
+      }).then(tryToClaimStudent);
     };
 
     var onStatusUpdate = function(data) {
@@ -28,13 +26,8 @@ module.exports = function(options) {
 
     var tryToClaimStudent = function() {
       if(claimedStudents < 5 && (lastStats == null || lastStats.students.waiting > 0)) {
-        client.publish('/presence/claim_student', {
-          teacherId: id
-        });
-
-        setImmediate(function() {
-          tryToClaimStudent();
-        });
+        client.publish('/presence/claim_student', { teacherId: id })
+          .then(tryToClaimStudent)
       }
     };
 
@@ -61,6 +54,7 @@ module.exports = function(options) {
       var terminateChannel = data.terminateChannel;
       var terminatedChannel = data.terminatedChannel;
       var joinedChannel    = data.joinedChannel;
+      var readyChannel     = data.readyChannel;
 
       claimedStudents++;
       console.log('Teacher now has ' + claimedStudents + ' students.');
@@ -72,7 +66,6 @@ module.exports = function(options) {
           sendNextMessage(sendChannel);
         }
         else {
-
           client.publish(terminateChannel, {
             message: 'teacher is ending the chat.'
           });
@@ -80,26 +73,33 @@ module.exports = function(options) {
       });
 
       //wait for student to join
-      var joinedSub = client.subscribe(joinedChannel, function(data) {
+      var readySub = client.subscribe(readyChannel, function(data) {
         // kick off the whole shebang
         sendNextMessage(sendChannel);
       });
 
       var terminatedSub = client.subscribe(terminatedChannel, function(data) {
         chatSub.cancel();
-        joinedSub.cancel();
+        readySub.cancel();
         terminatedSub.cancel();
 
         claimedStudents--;
         console.log('Teacher now has ' + claimedStudents + ' students.');
         tryToClaimStudent();
-      });
+      })
+
+      chatSub
+        .then(readySub)
+        .then(terminatedSub)
+        .then(function() {
+          client.publish(joinedChannel, { userId: id });
+        });
     };
 
     client
       .subscribe('/presence/status', onStatusUpdate)
       .then(function() {
-        client.subscribe('/presence/new_chat/teacher/' + id, handleNewChat)
+        return client.subscribe('/presence/new_chat/teacher/' + id, handleNewChat);
       })
       .then(function() {
         connect();
