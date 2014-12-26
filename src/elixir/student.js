@@ -14,8 +14,6 @@ module.exports = function(options) {
 
           chatChannel.on("chat:terminated", function(data) {
             console.log('Student ' + id + ' got disconnect message.');
-            chatChannel.leave();
-            channel.leave();
             socket.close();
           });
 
