@@ -16,7 +16,7 @@ module.exports = function(options) {
       };
 
       channel.on("user:status", function(data) {
-        console.log(data.students);
+        //console.log(data.students);
         if(data.students.total == 0) {
           process.exit();
         }

@@ -11,7 +11,7 @@ var defaults = {
   messageCount: 50,
   studentsPerTeacher: 5,
   numTeachers: 10,
-  numStudents: 100,
+  numStudents: 200,
   nodeServer:  false
 };
 

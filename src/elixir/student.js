@@ -9,7 +9,7 @@ module.exports = function(options) {
     socket.join("presence", "students", {userId: id, role: 'student'}, function(channel) {
       channel.on("new:chat:" + id, function(chat) {
         socket.join("chats", chat.id, {userId: id, role: 'student'}, function(chatChannel) {
-          console.log("student " + id + " joined chat " + chat.id);
+          console.log('Student ' + id + ' is starting new chat.');
           var messageCount = 0;
 
           chatChannel.on("chat:terminated", function(data) {
@@ -20,14 +20,22 @@ module.exports = function(options) {
           });
 
           chatChannel.on("student:receive", function(data) {
+            messageCount++;
+
+            if(messageCount == 1) {
+              console.log('Student ' + id + ' got first message.');
+            }
+
             chatChannel.send("student:send", {
-              message: "Message #" + ++messageCount + " from student: " + id
+              message: "Message #" + messageCount + " from student: " + id
             });
           });
 
           chatChannel.send("student:joined", {});
         });
       });
+
+      channel.send("student:ready", {userId: id});
     });
   };
 
