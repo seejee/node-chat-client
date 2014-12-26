@@ -12,11 +12,11 @@ module.exports = function(options) {
       var numStudents   = 0;
 
       var tryToClaimStudent = function() {
-        channel.send('claim:student', {
-          teacherId: id
-        });
-
         if(numStudents < 5 && (lastStats == null || lastStats.students.waiting > 0)) {
+          channel.send('claim:student', {
+            teacherId: id
+          });
+
           setImmediate(function() {
             tryToClaimStudent();
           });
