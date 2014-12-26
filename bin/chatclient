@@ -11,8 +11,8 @@ var defaults = {
   messageCount: 50,
   studentsPerTeacher: 5,
   numTeachers: 10,
-  numStudents: 200,
-  nodeServer:  false
+  numStudents: 1000,
+  nodeServer:  true
 };
 
 var options = _.merge(defaults, argv);

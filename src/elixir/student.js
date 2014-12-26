@@ -6,16 +6,16 @@ module.exports = function(options) {
   var start = function(id) {
     var socket = new Phoenix.Socket(url);
 
-    socket.join("presence", "students", {userId: id, role: 'student'}, function(channel) {
-      channel.on("new:chat:" + id, function(chat) {
+    socket.join("presence", "student:" + id, {userId: id, role: 'student'}, function(channel) {
+      channel.on("new:chat", function(chat) {
         socket.join("chats", chat.id, {userId: id, role: 'student'}, function(chatChannel) {
           console.log('Student ' + id + ' is starting new chat.');
           var messageCount = 0;
 
           chatChannel.on("chat:terminated", function(data) {
             console.log('Student ' + id + ' got disconnect message.');
-            //chatChannel.leave();
-            //channel.leave();
+            chatChannel.leave();
+            channel.leave();
             socket.close();
           });
 
