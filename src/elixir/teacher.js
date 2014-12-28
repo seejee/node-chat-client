@@ -17,9 +17,7 @@ module.exports = function(options) {
             teacherId: id
           });
 
-          setImmediate(function() {
-            tryToClaimStudent();
-          });
+          setImmediate(tryToClaimStudent);
         }
       };
 
