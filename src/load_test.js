@@ -4,12 +4,18 @@ module.exports = function(options) {
 
   if(options.mode == "node")
   {
-    options.url = 'http://localhost:3000/faye';
+    if(!options.url) {
+      options.url = 'http://localhost:3000/faye';
+    }
+
     student = require('./node/student')(options);
     teacher = require('./node/teacher')(options);
   }
   else {
-    options.url = 'ws://localhost:4000/ws';
+    if(!options.url) {
+      options.url = 'ws://localhost:4000/ws';
+    }
+
     student = require('./elixir/student')(options);
     teacher = require('./elixir/teacher')(options);
   }
