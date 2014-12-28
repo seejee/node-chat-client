@@ -11,13 +11,12 @@ module.exports = function(options) {
       var lastStats     = null;
       var numStudents   = 0;
 
+
       var tryToClaimStudent = function() {
         if(numStudents < 5 && (lastStats == null || lastStats.students.waiting > 0)) {
           channel.send('claim:student', {
             teacherId: id
           });
-
-          setImmediate(tryToClaimStudent);
         }
       };
 
@@ -75,7 +74,7 @@ module.exports = function(options) {
 
       channel.on("new:chat:" + id, handleNewChat);
 
-      tryToClaimStudent();
+      setInterval(tryToClaimStudent, 10);
     });
   };
 
