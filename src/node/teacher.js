@@ -10,10 +10,10 @@ module.exports = function(options) {
     var lastStats       = null;
 
     var connect = function() {
-      client.publish('/presence/teacher/connect', {
+      return client.publish('/presence/teacher/connect', {
         userId: id,
         role:   'teacher'
-      }).then(tryToClaimStudent);
+      });
     };
 
     var onStatusUpdate = function(data) {
@@ -27,7 +27,6 @@ module.exports = function(options) {
     var tryToClaimStudent = function() {
       if(claimedStudents < 5 && (lastStats == null || lastStats.students.waiting > 0)) {
         client.publish('/presence/claim_student', { teacherId: id })
-          .then(tryToClaimStudent)
       }
     };
 
@@ -101,8 +100,9 @@ module.exports = function(options) {
       .then(function() {
         return client.subscribe('/presence/new_chat/teacher/' + id, handleNewChat);
       })
+      .then(connect)
       .then(function() {
-        connect();
+        setInterval(tryToClaimStudent, 10);
       });
   };
 
