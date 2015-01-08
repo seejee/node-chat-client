@@ -23,4 +23,3 @@ The teacher process will exit automatically once all students have been processe
 To run the client against the Node server:
 
 1. `bin/chatclient --numStudents 1000 --numTeachers 10 --mode node`
-
