@@ -6,11 +6,10 @@ module.exports = function(options) {
   var start = function(id) {
     var socket = new Phoenix.Socket(url);
 
-    socket.join("presence", "teachers", {userId: id, role: 'teacher'}, function(channel) {
+    socket.join("presence:teachers", {userId: id, role: 'teacher'}, function(channel) {
       var messageCounts = {};
       var lastStats     = null;
       var numStudents   = 0;
-
 
       var tryToClaimStudent = function() {
         if(numStudents < 5 && (lastStats == null || lastStats.students.waiting > 0)) {
@@ -22,7 +21,7 @@ module.exports = function(options) {
 
       var handleNewChat = function(chat) {
         numStudents++;
-        socket.join("chats", chat.id, {userId: id, role: 'teacher'}, function(chatChannel) {
+        socket.join("chats:" + chat.id, {userId: id, role: 'teacher'}, function(chatChannel) {
           console.log("Teacher " + id + " grabbed a new student.");
 
           var getMessageCount = function() {
@@ -65,7 +64,6 @@ module.exports = function(options) {
       };
 
       channel.on("user:status", function(data) {
-        //console.log(data.students);
         lastStats = data;
         if(data.students.total == 0) {
           process.exit();
