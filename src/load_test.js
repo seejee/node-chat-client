@@ -5,7 +5,7 @@ module.exports = function(options) {
   if(options.mode == "node")
   {
     if(!options.url) {
-      options.url = 'http://localhost:3000/faye';
+      options.url = 'http://localhost:4000';
     }
 
     student = require('./node/student')(options);

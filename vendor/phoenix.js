@@ -4,15 +4,22 @@
     if (typeof define === "function" && define.amd) {
       return define(["phoenix"], factory);
     } else if (typeof exports === "object") {
-      return factory(exports);
+      if(typeof module !== 'undefined' && module.exports ) {
+        context = {
+          XMLHttpRequest: require('xhr2'),
+          WebSocket:      require('ws'),
+        };
+
+        return factory.call(context, module.exports);
+      } else {
+        return factory(exports);
+      }
     } else {
       return factory((root.Phoenix = {}));
     }
   })(this, function(exports) {
     var root;
     root = this;
-    root.XMLHttpRequest = require('xhr2');
-    root.WebSocket      = require('faye-websocket').Client;
     exports.Channel = (function() {
       Channel.prototype.bindings = null;
 

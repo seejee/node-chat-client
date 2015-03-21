@@ -1,67 +1,64 @@
-var faye    = require('faye');
+var io = require('socket.io-client');
 
 module.exports = function(options) {
   var url = options.url;
 
   var start = function(id) {
-    var client       = new faye.Client(url);
+    var client     = io(url);
+    var publish    = function(event, data) { client.emit(event, data); };
+    var subscribe  = function(event, cb)   { client.on(event, cb); };
+
     var messageCount = 0;
 
-    var chatSub      = null;
-    var newChatSub   = null;
-    var terminateSub = null;
-
     var connect = function() {
-      client.publish('/presence/student/connect', {
+      publish('presence:student:connect', {
         userId: id,
         role:   'student'
       });
     };
 
     var disconnect = function() {
-      client.publish('/presence/student/disconnect', {
+      publish('presence:student:disconnect', {
         userId: id,
         role:   'student'
-      }).then(function() {
-        chatSub.cancel();
-        newChatSub.cancel();
-        terminateSub.cancel();
-        client.disconnect();
       });
     };
 
-    var onNewChat = function(data) {
+    var onNewChat = function(chat) {
       console.log('Student ' + id + ' is starting new chat.');
 
-      var sendChannel       = data.sendChannel;
-      var receiveChannel    = data.receiveChannel;
-      var terminatedChannel = data.terminatedChannel;
-      var joinedChannel     = data.joinedChannel;
+      var sendChannel       = chat.sendChannel;
+      var receiveChannel    = chat.receiveChannel;
+      var terminatedChannel = chat.terminatedChannel;
+      var joinedChannel     = chat.joinedChannel;
 
-      chatSub = client.subscribe(receiveChannel, function(data) {
+      subscribe(receiveChannel, function(data) {
         messageCount++;
 
         if(messageCount == 1) {
           console.log('Student ' + id + ' got first message.');
         }
 
-        client.publish(sendChannel, {
+        publish(sendChannel, {
+          chatId:  chat.id,
           message: 'Message #' + messageCount + ' from student ' + id
         });
       });
 
-      terminateSub = client.subscribe(terminatedChannel, function(data) {
+      subscribe(terminatedChannel, function(data) {
         console.log('Student ' + id + ' got disconnect message.');
         disconnect();
       });
 
-      chatSub.then(terminateSub).then(function() {
-        client.publish(joinedChannel, { userId: id });
-      });
+      publish(joinedChannel, { chatId: chat.id, userId: id });
     }
 
-    newChatSub = client.subscribe('/presence/new_chat/student/' + id, onNewChat);
-    newChatSub.then(connect);
+    client.on('connect_error', function(data) {
+      console.log('student connection error: ', data);
+    });
+
+    subscribe('presence:new_chat:student:' + id, onNewChat);
+    connect();
   }
 
   return {

@@ -1,8 +1,11 @@
-var faye    = require('faye');
+var io = require('socket.io-client');
+var totalMessageCount = 0;
 
 module.exports = function(options) {
   var url    = options.url;
-  var client = new faye.Client(url);
+  var client = io(url);
+  var publish    = function(event, data) { client.emit(event, data); };
+  var subscribe  = function(event, cb)   { client.on(event, cb); };
 
   var start = function(id) {
     var messageCounts   = {};
@@ -10,7 +13,7 @@ module.exports = function(options) {
     var lastStats       = null;
 
     var connect = function() {
-      return client.publish('/presence/teacher/connect', {
+      publish('presence:teacher:connect', {
         userId: id,
         role:   'teacher'
       });
@@ -20,90 +23,84 @@ module.exports = function(options) {
       lastStats = data;
 
       if(data.students.waiting == 0 && data.students.total == 0) {
+        console.log('teachers received ' + totalMessageCount + ' messages.');
         process.exit();
       }
     };
 
     var tryToClaimStudent = function() {
       if(claimedStudents < 5 && (lastStats == null || lastStats.students.waiting > 0)) {
-        client.publish('/presence/claim_student', { teacherId: id })
+        publish('presence:claim_student', { teacherId: id })
       }
     };
 
-    var messageCount = function(channel) {
-      if(messageCounts[channel] === undefined) {
-        messageCounts[channel] = 0;
+    var messageCount = function(chatId, channel) {
+      if(messageCounts[chatId + channel] === undefined) {
+        messageCounts[chatId + channel] = 0;
       }
 
-      return messageCounts[channel];
+      return messageCounts[chatId + channel];
     }
 
-    var sendNextMessage = function(channel, count) {
-      count = messageCount(channel) + 1;
-      messageCounts[channel] = count;
+    var sendNextMessage = function(chatId, channel) {
+      var count = messageCount(chatId, channel) + 1;
+      messageCounts[chatId + channel] = count;
 
-      client.publish(channel, {
+      publish(channel, {
+        chatId:  chatId,
         message: 'Message from teacher: ' + count
       });
     };
 
-    var handleNewChat = function(data) {
-      var sendChannel      = data.sendChannel;
-      var receiveChannel   = data.receiveChannel;
-      var terminateChannel = data.terminateChannel;
-      var terminatedChannel = data.terminatedChannel;
-      var joinedChannel    = data.joinedChannel;
-      var readyChannel     = data.readyChannel;
+    var handleNewChat = function(chat) {
+      var sendChannel      = chat.sendChannel;
+      var receiveChannel   = chat.receiveChannel;
+      var terminateChannel = chat.terminateChannel;
+      var terminatedChannel = chat.terminatedChannel;
+      var joinedChannel    = chat.joinedChannel;
+      var readyChannel     = chat.readyChannel;
 
       claimedStudents++;
       console.log('Teacher now has ' + claimedStudents + ' students.');
 
-      var chatSub = client.subscribe(receiveChannel, function(data) {
+      subscribe(receiveChannel, function(data) {
+        totalMessageCount++;
         //console.log('Teacher got chat message:', data);
 
-        if(messageCount(sendChannel) < options.messageCount) {
-          sendNextMessage(sendChannel);
+        if(messageCount(chat.id, sendChannel) < options.messageCount) {
+          sendNextMessage(chat.id, sendChannel);
         }
         else {
-          client.publish(terminateChannel, {
+          publish(terminateChannel, {
+            chatId:  chat.id,
             message: 'teacher is ending the chat.'
           });
         }
       });
 
       //wait for student to join
-      var readySub = client.subscribe(readyChannel, function(data) {
+      subscribe(readyChannel, function(data) {
         // kick off the whole shebang
-        sendNextMessage(sendChannel);
+        sendNextMessage(chat.id, sendChannel);
       });
 
-      var terminatedSub = client.subscribe(terminatedChannel, function(data) {
-        chatSub.cancel();
-        readySub.cancel();
-        terminatedSub.cancel();
-
+      subscribe(terminatedChannel, function(data) {
         claimedStudents--;
         console.log('Teacher now has ' + claimedStudents + ' students.');
         tryToClaimStudent();
       })
 
-      chatSub
-        .then(readySub)
-        .then(terminatedSub)
-        .then(function() {
-          client.publish(joinedChannel, { userId: id });
-        });
+      publish(joinedChannel, { chatId: chat.id, userId: id });
     };
 
-    client
-      .subscribe('/presence/status', onStatusUpdate)
-      .then(function() {
-        return client.subscribe('/presence/new_chat/teacher/' + id, handleNewChat);
-      })
-      .then(connect)
-      .then(function() {
-        setInterval(tryToClaimStudent, 10);
-      });
+    client.on('connect_error', function(data) {
+      console.log('teacher connection error: ', data);
+    });
+
+    subscribe('presence:status', onStatusUpdate);
+    subscribe('presence:new_chat:teacher:' + id, handleNewChat);
+    connect();
+    setInterval(tryToClaimStudent, 10);
   };
 
   return {
