@@ -6,6 +6,7 @@ module.exports = function(options) {
   var start = function(id) {
     var socket = new Phoenix.Socket(url);
 
+    socket.connect();
     socket.join("presence:teachers", {userId: id, role: 'teacher'}, function(channel) {
       var messageCounts = {};
       var lastStats     = null;

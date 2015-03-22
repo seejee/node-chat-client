@@ -7,6 +7,8 @@ module.exports = function(options) {
     var socket  = new Phoenix.Socket(url);
     var student = { userId: id, role: 'student' };
 
+    socket.connect();
+
     socket.join("presence:student:" + id, student, function(channel) {
       channel.on("new:chat", function(chat) {
         socket.join("chats:" + chat.id, student, function(chatChannel) {
@@ -16,7 +18,7 @@ module.exports = function(options) {
           chatChannel.on("chat:terminated", function(data) {
             console.log('Student ' + id + ' got disconnect message.');
             channel.leave();
-            socket.close();
+            socket.disconnect();
           });
 
           chatChannel.on("student:receive", function(data) {
