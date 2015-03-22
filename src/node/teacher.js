@@ -34,17 +34,17 @@ module.exports = function(options) {
       }
     };
 
-    var messageCount = function(chatId, channel) {
-      if(messageCounts[chatId + channel] === undefined) {
-        messageCounts[chatId + channel] = 0;
+    var messageCount = function(chatId) {
+      if(messageCounts[chatId] === undefined) {
+        messageCounts[chatId] = 0;
       }
 
-      return messageCounts[chatId + channel];
+      return messageCounts[chatId];
     }
 
     var sendNextMessage = function(chatId, channel) {
-      var count = messageCount(chatId, channel) + 1;
-      messageCounts[chatId + channel] = count;
+      var count = messageCount(chatId) + 1;
+      messageCounts[chatId] = count;
 
       publish(channel, {
         chatId:  chatId,
@@ -67,7 +67,7 @@ module.exports = function(options) {
         totalMessageCount++;
         //console.log('Teacher got chat message:', data);
 
-        if(messageCount(chat.id, sendChannel) < options.messageCount) {
+        if(messageCount(chat.id) < options.messageCount) {
           sendNextMessage(chat.id, sendChannel);
         }
         else {
