@@ -4,8 +4,13 @@ module.exports = function(options) {
   var url = options.url;
 
   var start = function(id) {
+    var totalMessageCount = 0;
     var socket  = new Phoenix.Socket(url);
     var student = { userId: id, role: 'student' };
+
+    socket.onMessage(function() {
+      totalMessageCount++;
+    });
 
     socket.connect();
 
@@ -16,7 +21,7 @@ module.exports = function(options) {
           var messageCount = 0;
 
           chatChannel.on("chat:terminated", function(data) {
-            console.log('Student ' + id + ' got disconnect message.');
+            console.log('Student ' + id + ' got disconnect message after ' + totalMessageCount + ' messages.');
             channel.leave();
             socket.disconnect();
           });

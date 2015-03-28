@@ -5,7 +5,13 @@ module.exports = function(options) {
   var url    = options.url;
   var client = io(url);
   var publish    = function(event, data) { client.emit(event, data); };
-  var subscribe  = function(event, cb)   { client.on(event, cb); };
+
+  var subscribe  = function(event, cb)   {
+    client.on(event, function(data) {
+      totalMessageCount++;
+      cb(data);
+    });
+  };
 
   var start = function(id) {
     var messageCounts   = {};
@@ -64,7 +70,6 @@ module.exports = function(options) {
       console.log('Teacher now has ' + claimedStudents + ' students.');
 
       subscribe(receiveChannel, function(data) {
-        totalMessageCount++;
         //console.log('Teacher got chat message:', data);
 
         if(messageCount(chat.id) < options.messageCount) {

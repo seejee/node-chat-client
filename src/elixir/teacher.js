@@ -1,10 +1,15 @@
 var Phoenix = require('../../vendor/phoenix');
+var totalMessageCount = 0;
 
 module.exports = function(options) {
   var url = options.url;
 
   var start = function(id) {
     var socket = new Phoenix.Socket(url);
+
+    socket.onMessage(function() {
+      totalMessageCount++;
+    });
 
     socket.connect();
     socket.join("presence:teachers", {userId: id, role: 'teacher'}, function(channel) {
@@ -67,6 +72,7 @@ module.exports = function(options) {
       channel.on("user:status", function(data) {
         lastStats = data;
         if(data.students.total == 0) {
+          console.log("Total: " + totalMessageCount);
           process.exit();
         }
       });
