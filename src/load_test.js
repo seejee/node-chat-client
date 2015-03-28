@@ -25,7 +25,7 @@ module.exports = function(options) {
   }
 
   setTimeout(function() {
-    for(var i = 1; i <= options.numStudents; i++) {
+    for(var i = options.idStart + 1; i <= options.idStart + options.numStudents; i++) {
       student.start(i);
     }
   }, 100);

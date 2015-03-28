@@ -12,7 +12,8 @@ var defaults = {
   studentsPerTeacher: 5,
   numTeachers: 10,
   numStudents: 1000,
-  mode:  "elixir"
+  mode:  "elixir",
+  idStart: 0
 };
 
 var options = _.merge(defaults, argv);
