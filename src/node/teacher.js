@@ -13,7 +13,7 @@ module.exports = function(options) {
     });
   };
 
-  var start = function(id) {
+  var start = function(id, done) {
     var messageCounts   = {};
     var claimedStudents = 0;
     var lastStats       = null;
@@ -30,7 +30,7 @@ module.exports = function(options) {
 
       if(data.students.waiting == 0 && data.students.total == 0) {
         console.log('teachers received ' + totalMessageCount + ' messages.');
-        process.exit();
+        done();
       }
     };
 

@@ -21,12 +21,22 @@ module.exports = function(options) {
   }
 
   for(var i = 1; i <= options.numTeachers; i++) {
-    teacher.start(i);
+    teacher.start(i, function() {
+      process.exit();
+    });
   }
 
   setTimeout(function() {
+    doneCounter = 0;
+
     for(var i = options.idStart + 1; i <= options.idStart + options.numStudents; i++) {
-      student.start(i);
+      student.start(i, function() {
+        doneCounter++;
+
+        if(doneCounter == options.numStudents) {
+          process.exit();
+        }
+      });
     }
   }, 100);
 }

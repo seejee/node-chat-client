@@ -4,7 +4,7 @@ var totalMessageCount = 0;
 module.exports = function(options) {
   var url = options.url;
 
-  var start = function(id) {
+  var start = function(id, done) {
     var socket = new Phoenix.Socket(url);
 
     socket.onMessage(function() {
@@ -73,7 +73,7 @@ module.exports = function(options) {
         lastStats = data;
         if(data.students.total == 0) {
           console.log("Total: " + totalMessageCount);
-          process.exit();
+          done();
         }
       });
 

@@ -3,7 +3,7 @@ var io = require('socket.io-client');
 module.exports = function(options) {
   var url = options.url;
 
-  var start = function(id) {
+  var start = function(id, done) {
     var client     = io(url);
     var publish    = function(event, data) { client.emit(event, data); };
     var subscribe  = function(event, cb)   { client.on(event, cb); };
@@ -48,6 +48,7 @@ module.exports = function(options) {
       subscribe(terminatedChannel, function(data) {
         console.log('Student ' + id + ' got disconnect message.');
         disconnect();
+        done();
       });
 
       publish(joinedChannel, { chatId: chat.id, userId: id });
