@@ -4,7 +4,7 @@ module.exports = function(options) {
   var url = options.url;
 
   var start = function(id, done) {
-    var client     = io(url);
+    var client = io(url, {'force new connection': true, transports: ['websocket']});
     var publish    = function(event, data) { client.emit(event, data); };
     var subscribe  = function(event, cb)   { client.on(event, cb); };
 
