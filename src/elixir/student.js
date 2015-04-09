@@ -3,7 +3,7 @@ var Phoenix = require('../../vendor/phoenix');
 module.exports = function(options) {
   var url = options.url;
 
-  var start = function(id) {
+  var start = function(id, done) {
     var totalMessageCount = 0;
     var socket  = new Phoenix.Socket(url);
     var student = { userId: id, role: 'student' };
@@ -25,6 +25,7 @@ module.exports = function(options) {
             chatChannel.leave();
             channel.leave();
             socket.disconnect();
+            done();
           });
 
           chatChannel.on("student:receive", function(data) {

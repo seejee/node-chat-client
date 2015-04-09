@@ -3,17 +3,18 @@ var totalMessageCount = 0;
 
 module.exports = function(options) {
   var url    = options.url;
-  var client = io(url);
-  var publish    = function(event, data) { client.emit(event, data); };
 
-  var subscribe  = function(event, cb)   {
-    client.on(event, function(data) {
-      totalMessageCount++;
-      cb(data);
-    });
-  };
+  var start = function(id, done) {
+    var client = io(url, {'force new connection': true, transports: ['websocket']});
+    var publish    = function(event, data) { client.emit(event, data); };
 
-  var start = function(id) {
+    var subscribe  = function(event, cb)   {
+      client.on(event, function(data) {
+        totalMessageCount++;
+        cb(data);
+      });
+    };
+
     var messageCounts   = {};
     var claimedStudents = 0;
     var lastStats       = null;
@@ -30,7 +31,7 @@ module.exports = function(options) {
 
       if(data.students.waiting == 0 && data.students.total == 0) {
         console.log('teachers received ' + totalMessageCount + ' messages.');
-        process.exit();
+        done();
       }
     };
 
