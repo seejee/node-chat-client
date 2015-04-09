@@ -12,14 +12,14 @@ module.exports = function(options) {
     });
 
     socket.connect();
-    socket.join("presence:teachers", {userId: id, role: 'teacher'}, function(channel) {
+    socket.join("presence:teachers", {userId: id, role: 'teacher'}).receive('ok', function(channel) {
       var messageCounts = {};
       var lastStats     = null;
       var numStudents   = 0;
 
       var tryToClaimStudent = function() {
         if(numStudents < 5 && (lastStats == null || lastStats.students.waiting > 0)) {
-          channel.send('claim:student', {
+          channel.push('claim:student', {
             teacherId: id
           });
         }
@@ -27,7 +27,7 @@ module.exports = function(options) {
 
       var handleNewChat = function(chat) {
         numStudents++;
-        socket.join("chats:" + chat.id, {userId: id, role: 'teacher'}, function(chatChannel) {
+        socket.join("chats:" + chat.id, {userId: id, role: 'teacher'}).receive('ok', function(chatChannel) {
           console.log("Teacher " + id + " grabbed a new student.");
 
           var getMessageCount = function() {
@@ -38,7 +38,7 @@ module.exports = function(options) {
             var count = getMessageCount() + 1;
             messageCounts[chat.id] = count;
 
-            chatChannel.send("teacher:send", {
+            chatChannel.push("teacher:send", {
               message: "Message from teacher: " + count
             });
           }
@@ -61,11 +61,11 @@ module.exports = function(options) {
               sendNextMessage();
             }
             else {
-              chatChannel.send("chat:terminate", {});
+              chatChannel.push("chat:terminate", {});
             }
           });
 
-          chatChannel.send("teacher:joined", {});
+          chatChannel.push("teacher:joined", {});
         });
       };
 

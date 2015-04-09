@@ -14,14 +14,15 @@ module.exports = function(options) {
 
     socket.connect();
 
-    socket.join("presence:student:" + id, student, function(channel) {
+    socket.join("presence:student:" + id, student).receive('ok', function(channel) {
       channel.on("new:chat", function(chat) {
-        socket.join("chats:" + chat.id, student, function(chatChannel) {
+        socket.join("chats:" + chat.id, student).receive('ok', function(chatChannel) {
           console.log('Student ' + id + ' is starting new chat.');
           var messageCount = 0;
 
           chatChannel.on("chat:terminated", function(data) {
             console.log('Student ' + id + ' got disconnect message after ' + totalMessageCount + ' messages.');
+            chatChannel.leave();
             channel.leave();
             socket.disconnect();
           });
@@ -33,16 +34,16 @@ module.exports = function(options) {
               console.log('Student ' + id + ' got first message.');
             }
 
-            chatChannel.send("student:send", {
+            chatChannel.push("student:send", {
               message: "Message #" + messageCount + " from student: " + id
             });
           });
 
-          chatChannel.send("student:joined", {});
+          chatChannel.push("student:joined", {});
         });
       });
 
-      channel.send("student:ready", {userId: id});
+      channel.push("student:ready", {userId: id});
     });
   };
 
