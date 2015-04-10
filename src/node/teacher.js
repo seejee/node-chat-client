@@ -2,9 +2,7 @@ var io = require('socket.io-client');
 var totalMessageCount = 0;
 
 module.exports = function(options) {
-  var url    = options.url;
-
-  var start = function(id, done) {
+  var start = function(url, id, done) {
     var client = io(url, {transports: ['websocket']});
     var publish    = function(event, data) { client.emit(event, data); };
 
@@ -50,17 +48,18 @@ module.exports = function(options) {
       return messageCounts[chatId];
     }
 
-    var sendNextMessage = function(chatId, channel) {
-      var count = messageCount(chatId) + 1;
-      messageCounts[chatId] = count;
-
-      publish(channel, {
-        chatId:  chatId,
-        message: 'Message from teacher: ' + count
-      });
-    };
-
     var handleNewChat = function(chat) {
+      var sendNextMessage = function(channel) {
+        var chatId = chat.id
+        var count  = messageCount(chatId) + 1;
+        messageCounts[chatId] = count;
+
+        publish(channel, {
+          chatId:  chatId,
+          message: 'Message from teacher: ' + count
+        });
+      };
+
       var sendChannel      = chat.sendChannel;
       var receiveChannel   = chat.receiveChannel;
       var terminateChannel = chat.terminateChannel;
@@ -76,7 +75,7 @@ module.exports = function(options) {
         //console.log('Teacher got chat message:', data);
 
         if(messageCount(chat.id) < options.messageCount) {
-          sendNextMessage(chat.id, sendChannel);
+          sendNextMessage(sendChannel);
         }
         else if(!hasTerminated) {
           hasTerminated = true;
@@ -90,7 +89,7 @@ module.exports = function(options) {
       //wait for student to join
       subscribe(readyChannel, function(data) {
         // kick off the whole shebang
-        sendNextMessage(chat.id, sendChannel);
+        sendNextMessage(sendChannel);
       });
 
       subscribe(terminatedChannel, function(data) {
@@ -109,7 +108,7 @@ module.exports = function(options) {
     subscribe('presence:status', onStatusUpdate);
     subscribe('presence:new_chat:teacher:' + id, handleNewChat);
     connect();
-    setInterval(tryToClaimStudent, 500);
+    setInterval(tryToClaimStudent, 700);
   };
 
   return {

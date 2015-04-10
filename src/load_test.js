@@ -18,7 +18,7 @@ module.exports = function(options) {
   else {
     if(options.mode == "node") {
       if(!options.url) {
-        options.url = 'ws://localhost:3000';
+        options.url = 'ws://localhost';
       }
 
       student = require('./node/student')(options);
@@ -35,7 +35,8 @@ module.exports = function(options) {
     }
 
     for(var i = options.idStart + 1; i <= options.idStart + options.numTeachers; i++) {
-      teacher.start(i, function() {
+      teacher.start('ws://localhost:' + ((i % 6) + 3001), i, function() {
+      //teacher.start(options.url, i, function() {
         process.exit();
       });
     }
@@ -44,7 +45,8 @@ module.exports = function(options) {
       doneCounter = 0;
 
       for(var i = options.idStart + 1; i <= options.idStart + options.numStudents; i++) {
-        student.start(i, function() {
+        student.start('ws://localhost:' + ((i % 6) + 3001), i, function() {
+      //  student.start(options.url, i, function() {
           doneCounter++;
 
           if(doneCounter == options.numStudents) {

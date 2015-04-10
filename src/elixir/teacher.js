@@ -2,9 +2,7 @@ var Phoenix = require('../../vendor/phoenix');
 var totalMessageCount = 0;
 
 module.exports = function(options) {
-  var url = options.url;
-
-  var start = function(id, done) {
+  var start = function(url, id, done) {
     var socket = new Phoenix.Socket(url);
 
     socket.onMessage(function() {

@@ -1,9 +1,7 @@
 var Phoenix = require('../../vendor/phoenix');
 
 module.exports = function(options) {
-  var url = options.url;
-
-  var start = function(id, done) {
+  var start = function(url, id, done) {
     var totalMessageCount = 0;
     var socket  = new Phoenix.Socket(url);
     var student = { userId: id, role: 'student' };

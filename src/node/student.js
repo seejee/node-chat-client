@@ -1,12 +1,11 @@
 var io = require('socket.io-client');
 
 module.exports = function(options) {
-  var url = options.url;
-
-  var start = function(id, done) {
+  var start = function(url, id, done) {
     var client = io(url, {transports: ['websocket']});
     var publish    = function(event, data) { client.emit(event, data); };
     var subscribe  = function(event, cb)   { client.on(event, cb); };
+
 
     var messageCount = 0;
 
