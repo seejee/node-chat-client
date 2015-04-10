@@ -37,6 +37,7 @@ module.exports = function(options) {
 
     var tryToClaimStudent = function() {
       if(claimedStudents < 5 && (lastStats == null || lastStats.students.waiting > 0)) {
+        //console.log('teacher ' + id + ' is asking for another kid. They have ' + claimedStudents + ' kids.')
         publish('presence:claim_student', { teacherId: id })
       }
     };
@@ -66,6 +67,7 @@ module.exports = function(options) {
       var terminatedChannel = chat.terminatedChannel;
       var joinedChannel    = chat.joinedChannel;
       var readyChannel     = chat.readyChannel;
+      var hasTerminated    = false;
 
       claimedStudents++;
       console.log('Teacher now has ' + claimedStudents + ' students.');
@@ -76,7 +78,8 @@ module.exports = function(options) {
         if(messageCount(chat.id) < options.messageCount) {
           sendNextMessage(chat.id, sendChannel);
         }
-        else {
+        else if(!hasTerminated) {
+          hasTerminated = true;
           publish(terminateChannel, {
             chatId:  chat.id,
             message: 'teacher is ending the chat.'
@@ -106,7 +109,7 @@ module.exports = function(options) {
     subscribe('presence:status', onStatusUpdate);
     subscribe('presence:new_chat:teacher:' + id, handleNewChat);
     connect();
-    setInterval(tryToClaimStudent, 10);
+    setInterval(tryToClaimStudent, 500);
   };
 
   return {
