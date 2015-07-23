@@ -12,36 +12,39 @@ module.exports = function(options) {
 
     socket.connect();
 
-    socket.join("presence:student:" + id, student).receive('ok', function(channel) {
-      channel.on("new:chat", function(chat) {
-        socket.join("chats:" + chat.id, student).receive('ok', function(chatChannel) {
-          console.log('Student ' + id + ' is starting new chat.');
-          var messageCount = 0;
+    var channel = socket.chan("presence:student:" + id, student);
 
-          chatChannel.on("chat:terminated", function(data) {
-            console.log('Student ' + id + ' got disconnect message after ' + totalMessageCount + ' messages.');
-            chatChannel.leave();
-            channel.leave();
-            socket.disconnect();
-            done();
-          });
+    channel.on("new:chat", function(chat) {
+      var messageCount = 0;
+      var chatChannel = socket.chan("chats:" + chat.id, student);
 
-          chatChannel.on("student:receive", function(data) {
-            messageCount++;
+      chatChannel.on("chat:terminated", function(data) {
+        console.log('Student ' + id + ' got disconnect message after ' + totalMessageCount + ' messages.');
+        chatChannel.leave();
+        channel.leave();
+        done();
+      });
 
-            if(messageCount == 1) {
-              console.log('Student ' + id + ' got first message.');
-            }
+      chatChannel.on("student:receive", function(data) {
+        messageCount++;
 
-            chatChannel.push("student:send", {
-              message: "Message #" + messageCount + " from student: " + id
-            });
-          });
+        if(messageCount == 1) {
+          console.log('Student ' + id + ' got first message.');
+        }
 
-          chatChannel.push("student:joined", {});
+        chatChannel.push("student:send", {
+          message: "Message #" + messageCount + " from student: " + id
         });
       });
 
+      chatChannel.join().receive('ok', function() {
+        console.log('Student ' + id + ' is starting new chat.');
+
+        chatChannel.push("student:joined", {});
+      });
+    });
+
+    channel.join().receive('ok', function() {
       channel.push("student:ready", {userId: id});
     });
   };
