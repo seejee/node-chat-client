@@ -35,8 +35,7 @@ module.exports = function(options) {
     }
 
     for(var i = options.idStart + 1; i <= options.idStart + options.numTeachers; i++) {
-      teacher.start('ws://localhost:' + ((i % 6) + 3001), i, function() {
-      //teacher.start(options.url, i, function() {
+      teacher.start(options.url, i, function() {
         process.exit();
       });
     }
@@ -45,8 +44,7 @@ module.exports = function(options) {
       doneCounter = 0;
 
       for(var i = options.idStart + 1; i <= options.idStart + options.numStudents; i++) {
-        student.start('ws://localhost:' + ((i % 6) + 3001), i, function() {
-      //  student.start(options.url, i, function() {
+        student.start(options.url, i, function() {
           doneCounter++;
 
           if(doneCounter == options.numStudents) {
