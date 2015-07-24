@@ -93,10 +93,13 @@
 
 (function(exports, require, module, WebSocket){ "use strict";
 
-var _prototypeProperties = function (child, staticProps, instanceProps) { if (staticProps) Object.defineProperties(child, staticProps); if (instanceProps) Object.defineProperties(child.prototype, instanceProps); };
+var _createClass = (function () { function defineProperties(target, props) { for (var key in props) { var prop = props[key]; prop.configurable = true; if (prop.value) prop.writable = true; } Object.defineProperties(target, props); } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
 var _classCallCheck = function (instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } };
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
 // Phoenix Channels JavaScript client
 //
 // ## Socket Connection
@@ -110,7 +113,7 @@ var _classCallCheck = function (instance, Constructor) { if (!(instance instance
 //
 // The `Socket` constructor takes the mount point of the socket
 // as well as options that can be found in the Socket docs,
-// such as configuring the `LongPoller` transport, and heartbeat.
+// such as configuring the `LongPoll` transport, and heartbeat.
 // Socket params can also be passed as an option for default, but
 // overridable channel params to apply to all channels.
 //
@@ -199,6 +202,10 @@ var CHAN_EVENTS = {
   reply: "phx_reply",
   leave: "phx_leave"
 };
+var TRANSPORTS = {
+  longpoll: "longpoll",
+  websocket: "websocket"
+};
 
 var Push = (function () {
 
@@ -221,7 +228,7 @@ var Push = (function () {
     this.sent = false;
   }
 
-  _prototypeProperties(Push, null, {
+  _createClass(Push, {
     send: {
       value: function send() {
         var _this = this;
@@ -246,9 +253,7 @@ var Push = (function () {
           payload: this.payload,
           ref: ref
         });
-      },
-      writable: true,
-      configurable: true
+      }
     },
     receive: {
       value: function receive(status, callback) {
@@ -258,9 +263,7 @@ var Push = (function () {
 
         this.recHooks.push({ status: status, callback: callback });
         return this;
-      },
-      writable: true,
-      configurable: true
+      }
     },
     after: {
       value: function after(ms, callback) {
@@ -273,9 +276,7 @@ var Push = (function () {
         }
         this.afterHook = { ms: ms, callback: callback, timer: timer };
         return this;
-      },
-      writable: true,
-      configurable: true
+      }
     },
     matchReceive: {
 
@@ -291,16 +292,12 @@ var Push = (function () {
         }).forEach(function (h) {
           return h.callback(response);
         });
-      },
-      writable: true,
-      configurable: true
+      }
     },
     cancelRefEvent: {
       value: function cancelRefEvent() {
         this.chan.off(this.refEvent);
-      },
-      writable: true,
-      configurable: true
+      }
     },
     cancelAfter: {
       value: function cancelAfter() {
@@ -309,9 +306,7 @@ var Push = (function () {
         }
         clearTimeout(this.afterHook.timer);
         this.afterHook.timer = null;
-      },
-      writable: true,
-      configurable: true
+      }
     },
     startAfter: {
       value: function startAfter() {
@@ -325,9 +320,7 @@ var Push = (function () {
           _this.afterHook.callback();
         };
         this.afterHook.timer = setTimeout(callback, this.afterHook.ms);
-      },
-      writable: true,
-      configurable: true
+      }
     }
   });
 
@@ -370,16 +363,14 @@ var Channel = exports.Channel = (function () {
     });
   }
 
-  _prototypeProperties(Channel, null, {
+  _createClass(Channel, {
     rejoinUntilConnected: {
       value: function rejoinUntilConnected() {
         this.rejoinTimer.setTimeout();
         if (this.socket.isConnected()) {
           this.rejoin();
         }
-      },
-      writable: true,
-      configurable: true
+      }
     },
     join: {
       value: function join() {
@@ -390,48 +381,36 @@ var Channel = exports.Channel = (function () {
         }
         this.sendJoin();
         return this.joinPush;
-      },
-      writable: true,
-      configurable: true
+      }
     },
     onClose: {
       value: function onClose(callback) {
         this.on(CHAN_EVENTS.close, callback);
-      },
-      writable: true,
-      configurable: true
+      }
     },
     onError: {
       value: function onError(callback) {
         this.on(CHAN_EVENTS.error, function (reason) {
           return callback(reason);
         });
-      },
-      writable: true,
-      configurable: true
+      }
     },
     on: {
       value: function on(event, callback) {
         this.bindings.push({ event: event, callback: callback });
-      },
-      writable: true,
-      configurable: true
+      }
     },
     off: {
       value: function off(event) {
         this.bindings = this.bindings.filter(function (bind) {
           return bind.event !== event;
         });
-      },
-      writable: true,
-      configurable: true
+      }
     },
     canPush: {
       value: function canPush() {
         return this.socket.isConnected() && this.state === CHAN_STATES.joined;
-      },
-      writable: true,
-      configurable: true
+      }
     },
     push: {
       value: function push(event, payload) {
@@ -446,9 +425,7 @@ var Channel = exports.Channel = (function () {
         }
 
         return pushEvent;
-      },
-      writable: true,
-      configurable: true
+      }
     },
     leave: {
 
@@ -471,9 +448,7 @@ var Channel = exports.Channel = (function () {
         return this.push(CHAN_EVENTS.leave).receive("ok", function () {
           _this.trigger(CHAN_EVENTS.close, "leave");
         });
-      },
-      writable: true,
-      configurable: true
+      }
     },
     onMessage: {
 
@@ -481,9 +456,7 @@ var Channel = exports.Channel = (function () {
       //
       // Receives all events for specialized message handling
 
-      value: function onMessage(event, payload, ref) {},
-      writable: true,
-      configurable: true
+      value: function onMessage(event, payload, ref) {}
     },
     isMember: {
 
@@ -491,17 +464,13 @@ var Channel = exports.Channel = (function () {
 
       value: function isMember(topic) {
         return this.topic === topic;
-      },
-      writable: true,
-      configurable: true
+      }
     },
     sendJoin: {
       value: function sendJoin() {
         this.state = CHAN_STATES.joining;
         this.joinPush.send();
-      },
-      writable: true,
-      configurable: true
+      }
     },
     rejoin: {
       value: function rejoin() {
@@ -510,9 +479,7 @@ var Channel = exports.Channel = (function () {
           return pushEvent.send();
         });
         this.pushBuffer = [];
-      },
-      writable: true,
-      configurable: true
+      }
     },
     trigger: {
       value: function trigger(triggerEvent, payload, ref) {
@@ -522,16 +489,12 @@ var Channel = exports.Channel = (function () {
         }).map(function (bind) {
           return bind.callback(payload, ref);
         });
-      },
-      writable: true,
-      configurable: true
+      }
     },
     replyEventName: {
       value: function replyEventName(ref) {
         return "chan_reply_" + ref;
-      },
-      writable: true,
-      configurable: true
+      }
     }
   });
 
@@ -546,8 +509,8 @@ var Socket = exports.Socket = (function () {
   //                                               "wss://example.com"
   //                                               "/ws" (inherited host & protocol)
   // opts - Optional configuration
-  //   transport - The Websocket Transport, ie WebSocket, Phoenix.LongPoller.
-  //               Defaults to WebSocket with automatic LongPoller fallback.
+  //   transport - The Websocket Transport, ie WebSocket, Phoenix.LongPoll.
+  //               Defaults to WebSocket with automatic LongPoll fallback.
   //   params - The defaults for all channel params, ie `{user_id: userToken}`
   //   heartbeatIntervalMs - The millisec interval to send a heartbeat message
   //   reconnectAfterMs - The optional function that returns the millsec
@@ -577,7 +540,7 @@ var Socket = exports.Socket = (function () {
     this.channels = [];
     this.sendBuffer = [];
     this.ref = 0;
-    this.transport = opts.transport || WebSocket || LongPoller;
+    this.transport = opts.transport || window.WebSocket || LongPoll;
     this.heartbeatIntervalMs = opts.heartbeatIntervalMs || 30000;
     this.reconnectAfterMs = opts.reconnectAfterMs || function (tries) {
       return [1000, 5000, 10000][tries - 1] || 10000;
@@ -587,31 +550,28 @@ var Socket = exports.Socket = (function () {
     }, this.reconnectAfterMs);
     this.logger = opts.logger || function () {}; // noop
     this.longpollerTimeout = opts.longpollerTimeout || 20000;
-    this.endPoint = this.expandEndpoint(endPoint);
     this.params = opts.params || {};
+    this.endPoint = "" + endPoint + "/" + TRANSPORTS.websocket;
   }
 
-  _prototypeProperties(Socket, null, {
+  _createClass(Socket, {
     protocol: {
       value: function protocol() {
         return location.protocol.match(/^https/) ? "wss" : "ws";
-      },
-      writable: true,
-      configurable: true
+      }
     },
-    expandEndpoint: {
-      value: function expandEndpoint(endPoint) {
-        if (endPoint.charAt(0) !== "/") {
-          return endPoint;
+    endPointURL: {
+      value: function endPointURL() {
+        var uri = Ajax.appendParams(this.endPoint, this.params);
+        if (uri.charAt(0) !== "/") {
+          return uri;
         }
-        if (endPoint.charAt(1) === "/") {
-          return "" + this.protocol() + ":" + endPoint;
+        if (uri.charAt(1) === "/") {
+          return "" + this.protocol() + ":" + uri;
         }
 
-        return "" + this.protocol() + "://" + location.host + "" + endPoint;
-      },
-      writable: true,
-      configurable: true
+        return "" + this.protocol() + "://" + location.host + "" + uri;
+      }
     },
     disconnect: {
       value: function disconnect(callback, code, reason) {
@@ -625,16 +585,14 @@ var Socket = exports.Socket = (function () {
           this.conn = null;
         }
         callback && callback();
-      },
-      writable: true,
-      configurable: true
+      }
     },
     connect: {
       value: function connect() {
         var _this = this;
 
         this.disconnect(function () {
-          _this.conn = new _this.transport(_this.endPoint);
+          _this.conn = new _this.transport(_this.endPointURL());
           _this.conn.timeout = _this.longpollerTimeout;
           _this.conn.onopen = function () {
             return _this.onConnOpen();
@@ -649,9 +607,7 @@ var Socket = exports.Socket = (function () {
             return _this.onConnClose(event);
           };
         });
-      },
-      writable: true,
-      configurable: true
+      }
     },
     log: {
 
@@ -659,9 +615,7 @@ var Socket = exports.Socket = (function () {
 
       value: function log(kind, msg, data) {
         this.logger(kind, msg, data);
-      },
-      writable: true,
-      configurable: true
+      }
     },
     onOpen: {
 
@@ -674,36 +628,28 @@ var Socket = exports.Socket = (function () {
 
       value: function onOpen(callback) {
         this.stateChangeCallbacks.open.push(callback);
-      },
-      writable: true,
-      configurable: true
+      }
     },
     onClose: {
       value: function onClose(callback) {
         this.stateChangeCallbacks.close.push(callback);
-      },
-      writable: true,
-      configurable: true
+      }
     },
     onError: {
       value: function onError(callback) {
         this.stateChangeCallbacks.error.push(callback);
-      },
-      writable: true,
-      configurable: true
+      }
     },
     onMessage: {
       value: function onMessage(callback) {
         this.stateChangeCallbacks.message.push(callback);
-      },
-      writable: true,
-      configurable: true
+      }
     },
     onConnOpen: {
       value: function onConnOpen() {
         var _this = this;
 
-        this.log("transport", "connected to " + this.endPoint, this.transport);
+        this.log("transport", "connected to " + this.endPointURL(), this.transport.prototype);
         this.flushSendBuffer();
         this.reconnectTimer.reset();
         if (!this.conn.skipHeartbeat) {
@@ -715,9 +661,7 @@ var Socket = exports.Socket = (function () {
         this.stateChangeCallbacks.open.forEach(function (callback) {
           return callback();
         });
-      },
-      writable: true,
-      configurable: true
+      }
     },
     onConnClose: {
       value: function onConnClose(event) {
@@ -728,9 +672,7 @@ var Socket = exports.Socket = (function () {
         this.stateChangeCallbacks.close.forEach(function (callback) {
           return callback(event);
         });
-      },
-      writable: true,
-      configurable: true
+      }
     },
     onConnError: {
       value: function onConnError(error) {
@@ -739,18 +681,14 @@ var Socket = exports.Socket = (function () {
         this.stateChangeCallbacks.error.forEach(function (callback) {
           return callback(error);
         });
-      },
-      writable: true,
-      configurable: true
+      }
     },
     triggerChanError: {
       value: function triggerChanError() {
         this.channels.forEach(function (chan) {
           return chan.trigger(CHAN_EVENTS.error);
         });
-      },
-      writable: true,
-      configurable: true
+      }
     },
     connectionState: {
       value: function connectionState() {
@@ -764,25 +702,19 @@ var Socket = exports.Socket = (function () {
           default:
             return "closed";
         }
-      },
-      writable: true,
-      configurable: true
+      }
     },
     isConnected: {
       value: function isConnected() {
         return this.connectionState() === "open";
-      },
-      writable: true,
-      configurable: true
+      }
     },
     remove: {
       value: function remove(chan) {
         this.channels = this.channels.filter(function (c) {
           return !c.isMember(chan.topic);
         });
-      },
-      writable: true,
-      configurable: true
+      }
     },
     chan: {
       value: function chan(topic) {
@@ -799,9 +731,7 @@ var Socket = exports.Socket = (function () {
         var chan = new Channel(topic, mergedParams, this);
         this.channels.push(chan);
         return chan;
-      },
-      writable: true,
-      configurable: true
+      }
     },
     push: {
       value: function push(data) {
@@ -821,9 +751,7 @@ var Socket = exports.Socket = (function () {
         } else {
           this.sendBuffer.push(callback);
         }
-      },
-      writable: true,
-      configurable: true
+      }
     },
     makeRef: {
 
@@ -838,16 +766,12 @@ var Socket = exports.Socket = (function () {
         }
 
         return this.ref.toString();
-      },
-      writable: true,
-      configurable: true
+      }
     },
     sendHeartbeat: {
       value: function sendHeartbeat() {
         this.push({ topic: "phoenix", event: "heartbeat", payload: {}, ref: this.makeRef() });
-      },
-      writable: true,
-      configurable: true
+      }
     },
     flushSendBuffer: {
       value: function flushSendBuffer() {
@@ -857,9 +781,7 @@ var Socket = exports.Socket = (function () {
           });
           this.sendBuffer = [];
         }
-      },
-      writable: true,
-      configurable: true
+      }
     },
     onConnMessage: {
       value: function onConnMessage(rawMessage) {
@@ -878,18 +800,16 @@ var Socket = exports.Socket = (function () {
         this.stateChangeCallbacks.message.forEach(function (callback) {
           return callback(msg);
         });
-      },
-      writable: true,
-      configurable: true
+      }
     }
   });
 
   return Socket;
 })();
 
-var LongPoller = exports.LongPoller = (function () {
-  function LongPoller(endPoint) {
-    _classCallCheck(this, LongPoller);
+var LongPoll = exports.LongPoll = (function () {
+  function LongPoll(endPoint) {
+    _classCallCheck(this, LongPoll);
 
     this.endPoint = null;
     this.token = null;
@@ -899,43 +819,38 @@ var LongPoller = exports.LongPoller = (function () {
     this.onerror = function () {}; // noop
     this.onmessage = function () {}; // noop
     this.onclose = function () {}; // noop
-    this.upgradeEndpoint = this.normalizeEndpoint(endPoint);
-    this.pollEndpoint = this.upgradeEndpoint + (/\/$/.test(endPoint) ? "poll" : "/poll");
+    this.pollEndpoint = this.normalizeEndpoint(endPoint);
     this.readyState = SOCKET_STATES.connecting;
 
     this.poll();
   }
 
-  _prototypeProperties(LongPoller, null, {
+  _createClass(LongPoll, {
     normalizeEndpoint: {
       value: function normalizeEndpoint(endPoint) {
-        return endPoint.replace("ws://", "http://").replace("wss://", "https://");
-      },
-      writable: true,
-      configurable: true
+        return endPoint.replace("ws://", "http://").replace("wss://", "https://").replace(new RegExp("(.*)/" + TRANSPORTS.websocket), "$1/" + TRANSPORTS.longpoll);
+      }
     },
     endpointURL: {
       value: function endpointURL() {
-        return this.pollEndpoint + ("?token=" + encodeURIComponent(this.token) + "&sig=" + encodeURIComponent(this.sig) + "&format=json");
-      },
-      writable: true,
-      configurable: true
+        return Ajax.appendParams(this.pollEndpoint, {
+          token: this.token,
+          sig: this.sig,
+          format: "json"
+        });
+      }
     },
     closeAndRetry: {
       value: function closeAndRetry() {
         this.close();
         this.readyState = SOCKET_STATES.connecting;
-      },
-      writable: true,
-      configurable: true
+      }
     },
     ontimeout: {
       value: function ontimeout() {
         this.onerror("timeout");
         this.closeAndRetry();
-      },
-      writable: true,
-      configurable: true
+      }
     },
     poll: {
       value: function poll() {
@@ -982,9 +897,7 @@ var LongPoller = exports.LongPoller = (function () {
               throw "unhandled poll status " + status;
           }
         });
-      },
-      writable: true,
-      configurable: true
+      }
     },
     send: {
       value: function send(body) {
@@ -996,21 +909,17 @@ var LongPoller = exports.LongPoller = (function () {
             _this.closeAndRetry();
           }
         });
-      },
-      writable: true,
-      configurable: true
+      }
     },
     close: {
       value: function close(code, reason) {
         this.readyState = SOCKET_STATES.closed;
         this.onclose();
-      },
-      writable: true,
-      configurable: true
+      }
     }
   });
 
-  return LongPoller;
+  return LongPoll;
 })();
 
 var Ajax = exports.Ajax = (function () {
@@ -1018,7 +927,7 @@ var Ajax = exports.Ajax = (function () {
     _classCallCheck(this, Ajax);
   }
 
-  _prototypeProperties(Ajax, {
+  _createClass(Ajax, null, {
     request: {
       value: function request(method, endPoint, accept, body, timeout, ontimeout, callback) {
         if (window.XDomainRequest) {
@@ -1029,9 +938,7 @@ var Ajax = exports.Ajax = (function () {
           new ActiveXObject("Microsoft.XMLHTTP"); // IE6, IE5
           this.xhrRequest(req, method, endPoint, accept, body, timeout, ontimeout, callback);
         }
-      },
-      writable: true,
-      configurable: true
+      }
     },
     xdomainRequest: {
       value: function xdomainRequest(req, method, endPoint, body, timeout, ontimeout, callback) {
@@ -1051,9 +958,7 @@ var Ajax = exports.Ajax = (function () {
         req.onprogress = function () {};
 
         req.send(body);
-      },
-      writable: true,
-      configurable: true
+      }
     },
     xhrRequest: {
       value: function xhrRequest(req, method, endPoint, accept, body, timeout, ontimeout, callback) {
@@ -1076,16 +981,40 @@ var Ajax = exports.Ajax = (function () {
         }
 
         req.send(body);
-      },
-      writable: true,
-      configurable: true
+      }
     },
     parseJSON: {
       value: function parseJSON(resp) {
         return resp && resp !== "" ? JSON.parse(resp) : null;
-      },
-      writable: true,
-      configurable: true
+      }
+    },
+    serialize: {
+      value: function serialize(obj, parentKey) {
+        var queryStr = [];
+        for (var key in obj) {
+          if (!obj.hasOwnProperty(key)) {
+            continue;
+          }
+          var paramKey = parentKey ? "" + parentKey + "[" + key + "]" : key;
+          var paramVal = obj[key];
+          if (typeof paramVal === "object") {
+            queryStr.push(this.serialize(paramVal, paramKey));
+          } else {
+            queryStr.push(encodeURIComponent(paramKey) + "=" + encodeURIComponent(paramVal));
+          }
+        }
+        return queryStr.join("&");
+      }
+    },
+    appendParams: {
+      value: function appendParams(url, params) {
+        if (Object.keys(params).length === 0) {
+          return url;
+        }
+
+        var prefix = url.match(/\?/) ? "&" : "?";
+        return "" + url + "" + prefix + "" + this.serialize(params);
+      }
     }
   });
 
@@ -1118,14 +1047,12 @@ var Timer = (function () {
     this.tries = 0;
   }
 
-  _prototypeProperties(Timer, null, {
+  _createClass(Timer, {
     reset: {
       value: function reset() {
         this.tries = 0;
         clearTimeout(this.timer);
-      },
-      writable: true,
-      configurable: true
+      }
     },
     setTimeout: {
 
